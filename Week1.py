@@ -78,6 +78,6 @@ print(add(1,2))
 #what if we are passing parameters we do not know their count?
 def print_names(*names):
     for name in names:
-        print(name)
+        print(name, end = " ")
 
-print_names("Ahmed","Mamdouh","Abd EL-Ghany")
+print_names("Ahmed","Mamdouh","Abd EL-Ghany") #output : Ahmed Mamdouh Abd EL-Ghany
