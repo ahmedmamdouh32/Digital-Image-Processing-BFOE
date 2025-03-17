@@ -157,7 +157,7 @@ pi_red   = var[0:255]
 pi_green = var[256:511]
 pi_blue  = var[512:767]
 
-plt.plot(pi_red,color = "red")
+plt.plot(pi_red,color = "red")g
 plt.plot(pi_green,color = "green")
 plt.plot(pi_blue,color = "blue")
 plt.show()
