@@ -1,5 +1,4 @@
 #****************************************************** Histogram ******************************************************
-
 # A Histogram is a graphical representation of the distribution of pixel intensities in an image.
 # It shows how many pixels in an image have a specific intensity value, typically ranging from 0 (black) to 255 (white)
 # for grayscale images.
