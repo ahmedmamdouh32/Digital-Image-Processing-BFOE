@@ -1,3 +1,9 @@
+#1. By using open cv library read an image and apply the following noises:
+# Gaussian Noise
+# Salt and Paper Noise
+# Random Noise
+
+#1.1 Gaussian Noise
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -22,8 +28,9 @@ plt.title("Image with Gaussian Noise")
 plt.imshow(noisy_image)
 plt.show()
 
-
 #-----------------------------------------------------------------------------------------------------------------------
+#1.2 Salt and Paper Noise
+
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -60,6 +67,7 @@ plt.title("Salt & Pepper Noise")
 plt.imshow(noisy)
 plt.show()
 #-----------------------------------------------------------------------------------------------------------------------
+#1.3 Random Noise
 import numpy as np
 
 image = cv2.imread('orange.png')
@@ -86,6 +94,7 @@ plt.title("Random Noise")
 plt.imshow(noisy)
 plt.show()
 #-----------------------------------------------------------------------------------------------------------------------
+#2. using pillow library read an image and compress it.
 from PIL import Image
 
 import os
@@ -119,3 +128,4 @@ plt.subplot(1, 2, 2)
 plt.title(f"Compressed image, Size: {compressed_size} Bytes")
 plt.imshow(resized_image)
 plt.show()
+
