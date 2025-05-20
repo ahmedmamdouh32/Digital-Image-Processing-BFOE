@@ -1,10 +1,10 @@
 import tkinter as tk
-from tkinter import filedialog, messagebox
-from PIL import Image, ImageTk, ImageFilter
+from tkinter import filedialog, messagebox, ttk
+from PIL import Image, ImageTk
 import numpy as np
+from matplotlib.pyplot import margins
 from scipy.ndimage import convolve
 import cv2
-import os
 
 # Kernel definitions for existing filters
 kernels = {
@@ -18,7 +18,7 @@ kernels = {
     "Gaussian Blur (SciPy)": (1 / 16.0) * np.array([[1., 2., 1.], [2., 4., 2.], [1., 2., 1.]])
 }
 
-# Noise functions from provided code
+# Noise functions
 def add_salt_and_pepper_noise(image, noise_ratio=0.5):
     noisy_image = image.copy()
     h, w, c = noisy_image.shape
@@ -41,38 +41,94 @@ def add_random_noise(image, intensity=25):
 class ImageFilterApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Filters App")
+        self.root.title("Image Filter Studio")
         self.root.geometry("800x600")
+        self.root.configure(bg="#06275c")  # Soft off-white background
 
-        # Variables
-        self.image_path = None
-        self.original_image = None
-        self.filtered_image = None
+        # Configure ttk style for buttons and dropdown
+        style = ttk.Style()
+        style.theme_use("clam")
+        style.configure(
+            "TButton",
+            font=("Roboto", 12, "bold"),
+            padding=12,
+            background="#eed055",
+            foreground="#06275c",
+            borderwidth=0,
+            bordercolor="#06275c",
+            relief="solid",
+            anchor="center",
+            justify="center",
+            focuscolor="#eed055"
+        )
+        style.map(
+            "TButton",
+            background=[("active", "#FFF176"), ("disabled", "#eed055")],
+            foreground=[("active", "#06275c"), ("disabled", "#06275c")]
+        )
+        style.configure(
+            "TLabel",
+            background="#06275c",  # Light mint green for labels
+            foreground="#eed055",  # Deep navy blue text
+            font=("Comic Sans MS", 16)
+        )
+        style.configure(
+            "TCombobox",
+            padding=10,
+            background="#eed055",
+            foreground="#06275c",
+            fieldbackground="#b2cdf7",
+            borderwidth=0,
+            relief="solid"
+        )
+        style.map(
+            "TCombobox",
+            background=[("disabled", "#eed055")],
+            foreground=[("disabled", "#06275c")],
+            fieldbackground=[("disabled", "#b2cdf7")]
+        )
+
 
         # GUI Elements
-        self.label = tk.Label(root, text="Upload Image, Apply Filter & see the magic !!!", font=("Arial", 16))
-        self.label.pack(pady=10)
+        self.label = tk.Label(
+            root,
+            text="Image Filter Studio",
+            font=("Comic Sans MS", 20,"bold"),
+            bg="#06275c",
+            fg="#eed055"
+        )
+        self.label.pack(pady=25)
 
         # Image display frames
-        self.frame_images = tk.Frame(root)
-        self.frame_images.pack(pady=10)
+        self.frame_images = tk.Frame(root, bg="#06275c")
+        self.frame_images.pack(pady=25)
 
-        self.label_original = tk.Label(self.frame_images, text="Original Image")
-        self.label_original.grid(row=0, column=0, padx=10)
-        self.label_filtered = tk.Label(self.frame_images, text="Filtered Image")
-        self.label_filtered.grid(row=0, column=1, padx=10)
+        self.label_original = ttk.Label(self.frame_images, text="Original Image")
+        self.label_original.grid(row=0, column=0, padx=20, pady=5)
+        self.label_filtered = ttk.Label(self.frame_images, text="Filtered Image")
+        self.label_filtered.grid(row=0, column=1, padx=20, pady=5)
 
-        self.canvas_original = tk.Label(self.frame_images)
-        self.canvas_original.grid(row=1, column=0, padx=10)
-        self.canvas_filtered = tk.Label(self.frame_images)
-        self.canvas_filtered.grid(row=1, column=1, padx=10)
+        # Canvas with yellow borders
+        self.canvas_original = tk.Label(
+            self.frame_images,
+            bg="#06275c",  # Light mint green background
+            highlightbackground="#06275c",  # Yellow border
+        )
+        self.canvas_original.grid(row=1, column=0, padx=20, pady=15)
+        self.canvas_filtered = tk.Label(
+            self.frame_images,
+            bg="#06275c",
+            highlightbackground="#06275c",
+        )
+        self.canvas_filtered.grid(row=1, column=1, padx=20, pady=15)
 
         # Buttons and Filter Selection
-        self.button_frame = tk.Frame(root)
-        self.button_frame.pack(pady=10)
+        self.button_frame = tk.Frame(root, bg="#06275c")
+        self.button_frame.pack(pady=25)
 
-        self.btn_load = tk.Button(self.button_frame, text="Load Image", command=self.load_image)
-        self.btn_load.grid(row=0, column=0, padx=5)
+        self.btn_load = ttk.Button(self.button_frame, text="Load Image", command=self.load_image,)
+
+        self.btn_load.grid(row=0, column=0, padx=15)
 
         self.filter_var = tk.StringVar(value="None")
         self.filters = [
@@ -81,14 +137,16 @@ class ImageFilterApp:
             "Median Blur", "Gaussian Blur (OpenCV)", "Blur (OpenCV)", "Box Filter (OpenCV)", "Laplacian",
             "Gaussian Noise", "Salt and Pepper Noise", "Random Noise"
         ]
-        self.filter_menu = tk.OptionMenu(self.button_frame, self.filter_var, *self.filters)
-        self.filter_menu.grid(row=0, column=1, padx=5)
+        self.filter_menu = ttk.Combobox(
+            self.button_frame, textvariable=self.filter_var, values=self.filters, state="readonly",
+        )
+        self.filter_menu.grid(row=0, column=1, padx=15)
 
-        self.btn_apply = tk.Button(self.button_frame, text="Apply Filter", command=self.apply_filter)
-        self.btn_apply.grid(row=0, column=2, padx=5)
+        self.btn_apply = ttk.Button(self.button_frame, text="Apply Filter", command=self.apply_filter)
+        self.btn_apply.grid(row=0, column=2, padx=15)
 
-        self.btn_save = tk.Button(self.button_frame, text="Save Filtered Image", command=self.save_image)
-        self.btn_save.grid(row=0, column=3, padx=5)
+        self.btn_save = ttk.Button(self.button_frame, text="Save Filtered Image", command=self.save_image)
+        self.btn_save.grid(row=0, column=3, padx=15)
 
     def load_image(self):
         self.image_path = filedialog.askopenfilename(
@@ -97,12 +155,11 @@ class ImageFilterApp:
         if self.image_path:
             try:
                 self.original_image = Image.open(self.image_path)
-                # Resize for display (max 300x300 to fit GUI)
                 display_image = self.original_image.copy()
                 display_image.thumbnail((300, 300))
                 self.photo_original = ImageTk.PhotoImage(display_image)
                 self.canvas_original.configure(image=self.photo_original)
-                self.canvas_filtered.configure(image='')  # Clear filtered image
+                self.canvas_filtered.configure(image='')
                 self.filtered_image = None
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to load image: {e}")
@@ -116,31 +173,18 @@ class ImageFilterApp:
         self.filtered_image = self.original_image.copy()
 
         try:
-            if filter_type in kernels:  # Handle kernel-based filters
+            if filter_type in kernels:
                 img_array = np.array(self.filtered_image.convert("L")).astype(float)
                 filtered_array = convolve(img_array, kernels[filter_type])
                 filtered_array = np.clip(filtered_array, 0, 255).astype(np.uint8)
                 self.filtered_image = Image.fromarray(filtered_array)
-            elif filter_type == "Sepia":
-                self.filtered_image = self.filtered_image.convert("RGB")
-                pixels = self.filtered_image.load()
-                for i in range(self.filtered_image.width):
-                    for j in range(self.filtered_image.height):
-                        r, g, b = pixels[i, j]
-                        new_r = min(255, int(r * 0.393 + g * 0.769 + b * 0.189))
-                        new_g = min(255, int(r * 0.349 + g * 0.686 + b * 0.168))
-                        new_b = min(255, int(r * 0.272 + g * 0.534 + b * 0.131))
-                        pixels[i, j] = (new_r, new_g, new_b)
             elif filter_type in [
                 "Bilateral Filter", "Median Blur", "Gaussian Blur (OpenCV)",
                 "Blur (OpenCV)", "Box Filter (OpenCV)", "Laplacian",
                 "Gaussian Noise", "Salt and Pepper Noise", "Random Noise"
             ]:
-                # Convert PIL Image to OpenCV format (RGB to BGR)
                 img_array = np.array(self.filtered_image)
                 img_array = cv2.cvtColor(img_array, cv2.COLOR_RGB2BGR)
-
-                # Apply OpenCV filters or noise
                 if filter_type == "Bilateral Filter":
                     filtered_array = cv2.bilateralFilter(img_array, 20, 75, 75)
                 elif filter_type == "Median Blur":
@@ -164,14 +208,11 @@ class ImageFilterApp:
                     filtered_array = add_salt_and_pepper_noise(img_array, noise_ratio=0.5)
                 elif filter_type == "Random Noise":
                     filtered_array = add_random_noise(img_array, intensity=25)
-
-                # Convert back to RGB for PIL
                 filtered_array = cv2.cvtColor(filtered_array, cv2.COLOR_BGR2RGB)
                 self.filtered_image = Image.fromarray(filtered_array)
             elif filter_type == "None":
                 self.filtered_image = self.original_image.copy()
 
-            # Display filtered image
             display_filtered = self.filtered_image.copy()
             display_filtered.thumbnail((300, 300))
             self.photo_filtered = ImageTk.PhotoImage(display_filtered)
